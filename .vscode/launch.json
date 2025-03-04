@@ -1,0 +1,45 @@
+{
+    "configurations": [
+        {
+            "type": "java",
+            "name": "Spring Boot-TableManagementApplication<table-management>",
+            "request": "launch",
+            "cwd": "${workspaceFolder}",
+            "mainClass": "com.tujuhsembilan.table_management.TableManagementApplication",
+            "projectName": "table-management",
+            "args": "",
+            "envFile": "${workspaceFolder}/.env",
+            "vmArgs": " -Dcom.sun.management.jmxremote -Dcom.sun.management.jmxremote.port=61710 -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.ssl=false -Dspring.jmx.enabled=true -Djava.rmi.server.hostname=localhost -Dspring.application.admin.enabled=true -Dspring.boot.project.name=table-management"
+        },
+        {
+            "type": "java",
+            "name": "Spring Boot-ServiceRegistryApplication<service-registry>",
+            "request": "launch",
+            "cwd": "${workspaceFolder}",
+            "mainClass": "com.tujuhsembilan.serviceregistry.ServiceRegistryApplication",
+            "projectName": "service-registry",
+            "args": "",
+            "envFile": "${workspaceFolder}/.env"
+        },
+        {
+            "type": "java",
+            "name": "Spring Boot-ApiGatewayApplication<api-gateway>",
+            "request": "launch",
+            "cwd": "${workspaceFolder}",
+            "mainClass": "com.tujuhsembilan.api_gateway.ApiGatewayApplication",
+            "projectName": "api-gateway",
+            "args": "",
+            "envFile": "${workspaceFolder}/.env"
+        },
+        {
+            "type": "java",
+            "name": "Spring Boot-UserServiceApplication<user-service>",
+            "request": "launch",
+            "cwd": "${workspaceFolder}",
+            "mainClass": "com.tujuhsembilan.user_service.UserServiceApplication",
+            "projectName": "user-service",
+            "args": "",
+            "envFile": "${workspaceFolder}/.env"
+        }
+    ]
+}
