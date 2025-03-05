@@ -25,8 +25,7 @@ public class JwtUtil {
 
     private String secret = "myverylongandsecurekeywithatleast256bits";
 
-    private long tokenLifeSpan = 60 * 1000;
-
+    private long tokenLifeSpan = 60 * 60 * 1000;
     private SecretKey getSigningKey() {
         return Keys.hmacShaKeyFor(secret.getBytes());
     }
