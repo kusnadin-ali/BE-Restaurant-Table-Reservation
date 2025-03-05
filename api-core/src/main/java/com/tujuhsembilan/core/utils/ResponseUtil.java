@@ -25,6 +25,16 @@ public class ResponseUtil {
         return ResponseEntity.ok(response);
     }
 
+    public static <T> ResponseEntity<Map<String, Object>> success(T result, String message) {
+        Map<String, Object> response = new HashMap<>();
+        response.put("code", ApiConstant.SUCCESS_CODE);
+        response.put("message", message);
+        if (result != null)
+            response.put("result", result);
+
+        return ResponseEntity.ok(response);
+    }
+
     public static <T> ResponseEntity<Map<String, Object>> error(T result, String customCode) {
         Map<String, Object> response = new HashMap<>();
         response.put("code", customCode);

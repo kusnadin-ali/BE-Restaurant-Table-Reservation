@@ -35,7 +35,8 @@ public class JwtAuthenticationFilter implements WebFilter {
 
         if (token != null && token.startsWith("Bearer ")) {
             token = token.substring(7);
-
+            log.info(token);
+            log.info("validating token {}", jwtUtil.validateToken(token));
             if (jwtUtil.validateToken(token)) {
                 Claims claims = jwtUtil.extractAllClaims(token);
 
