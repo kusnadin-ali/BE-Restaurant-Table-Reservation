@@ -25,15 +25,15 @@ hs_err_pid*
 *.swp
 .DS_Store
 
-# Ignore environment variables and config files
-.env
-*.properties
-*.yml
-*.yaml
-application.properties
-application.yml
-application-*.properties
-application-*.yml
+# # Ignore environment variables and config files
+# .env
+# *.properties
+# *.yml
+# *.yaml
+# application.properties
+# application.yml
+# application-*.properties
+# application-*.yml
 
 # Ignore JAR/WAR files
 *.jar
