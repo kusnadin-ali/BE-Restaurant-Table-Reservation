@@ -32,7 +32,7 @@ public class SecurityConfig {
     SecurityWebFilterChain securityWebFilterChain(ServerHttpSecurity http, JwtAuthenticationFilter jwtFilter) {
         return http
                 .authorizeExchange(exchanges -> exchanges
-                        .pathMatchers("/auth-service/auth/**").permitAll()
+                        .pathMatchers("/user-service/auth/**").permitAll()
                         .anyExchange().authenticated()
                 )
                 .addFilterAt(jwtFilter, SecurityWebFiltersOrder.AUTHENTICATION)
