@@ -56,7 +56,7 @@ public class AuthController {
             // Bandingkan password yang diinput dengan yang ada di database
             if (passwordEncoder.matches(request.getPassword(), user.getPassword())) {
                 String token = jwtUtil.generateToken(user.getUsername(), user.getUserType());
-                AuthenticationResponse response = new AuthenticationResponse(token);
+                AuthenticationResponse response = new AuthenticationResponse(token, user.getUserType());
                 return ResponseUtil.success(response);
             }
         }

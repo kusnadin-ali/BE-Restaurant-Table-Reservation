@@ -7,4 +7,5 @@ import lombok.Getter;
 @Getter
 public class AuthenticationResponse {
     final private String token;
+    final private String userType;
 }
