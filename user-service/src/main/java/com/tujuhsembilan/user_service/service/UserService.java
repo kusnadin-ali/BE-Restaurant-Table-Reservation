@@ -4,11 +4,15 @@ import java.util.List;
 import java.util.Optional;
 
 import org.springframework.beans.BeanUtils;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import com.tujuhsembilan.user_service.constant.UserTypeEnum;
+import com.tujuhsembilan.user_service.dto.User.PaginationResponseDto;
 import com.tujuhsembilan.user_service.dto.User.UserCustomerDto;
 import com.tujuhsembilan.user_service.dto.User.UserPojo;
 import com.tujuhsembilan.user_service.dto.User.UserRestaurantCreateDto;
@@ -33,7 +37,7 @@ public class UserService {
         return userRepository.findByUsernameAndIsDeleteFalse(username).isPresent();
     }
 
-    public ResponseEntity<?> saveUser(UserCustomerDto userCustomerDto){
+    public ResponseEntity<?> saveUser(UserCustomerDto userCustomerDto) {
         try {
             User user = new User();
             userCustomerDto.setPassword(passwordEncoder.encode(userCustomerDto.getPassword()));
@@ -43,7 +47,7 @@ public class UserService {
             userRepository.save(user);
             userCustomerDto.setPassword("****");
             return ResponseEntity.ok(userCustomerDto);
-            
+
         } catch (Exception e) {
             System.out.println(e.getMessage());
             throw e;
@@ -54,22 +58,47 @@ public class UserService {
         return userRepository.findByUsernameAndIsDeleteFalse(username);
     }
 
-    public ResponseEntity<?> getListStaffUserRestaurant() {
-        List<UserPojo> users = userRepository.getAllByUserType(UserTypeEnum.STAFF.name());
-
-        return ResponseUtil.success(users);
+    public ResponseEntity<?> getListStaffUserRestaurant(Integer page, Integer size) {
+        try {
+            
+            Pageable pageable = PageRequest.of(page, size);
+            List<String> userTypes = List.of(UserTypeEnum.STAFF.name(), UserTypeEnum.ADMIN.name());
+            log.info("tets 0");
+            Page<UserPojo> users = userRepository.getAllByUserTypeWithPagination(userTypes, pageable);
+            log.info("test 1");
+            PaginationResponseDto response = new PaginationResponseDto();
+            response.setData(users.getContent());
+            response.setPage(users.getNumber());
+            response.setSize(users.getSize());
+            response.setTotalPage(users.getTotalPages());
+            response.setTotalData(users.getTotalElements());
+            return ResponseUtil.success(response);
+        
+        } catch (Exception e) {
+            // TODO: handle exception
+            log.error("error disini", e);
+            return ResponseUtil.error(null, "02", "Internal server error");
+        }
     }
 
-    public ResponseEntity<?> getListCustomer() {
-        List<UserPojo> users = userRepository.getAllByUserType(UserTypeEnum.CUSTOMER.name());
+    public ResponseEntity<?> getListCustomer(Integer page, Integer size) {
+        Pageable pageable = PageRequest.of(page, size);
+        List<String> userTypes = List.of(UserTypeEnum.CUSTOMER.name());
+        Page<UserPojo> users = userRepository.getAllByUserTypeWithPagination(userTypes, pageable);
 
-        return ResponseUtil.success(users);
+        PaginationResponseDto response = new PaginationResponseDto();
+        response.setData(users.getContent());
+        response.setPage(users.getNumber());
+        response.setSize(users.getSize());
+        response.setTotalPage(users.getTotalPages());
+        response.setTotalData(users.getTotalElements());
+        return ResponseUtil.success(response);
     }
 
     public ResponseEntity<?> updateDetailUser(UserUpdateDto request) {
         Optional<User> user = userRepository.findByUsernameAndIsDeleteFalse(request.getUsername());
 
-        if(!user.isPresent()){
+        if (!user.isPresent()) {
             return ResponseUtil.error(null, "02", "User not found");
         }
 
@@ -85,11 +114,11 @@ public class UserService {
     public ResponseEntity<?> deleteUser(String username) {
         Optional<User> user = userRepository.findByUsernameAndIsDeleteFalse(username);
 
-        if(!user.isPresent()){
+        if (!user.isPresent()) {
             return ResponseUtil.error(null, "02", "User not found");
         }
 
-        if(user.get().getUserType().equals(UserTypeEnum.CUSTOMER.name())) {
+        if (user.get().getUserType().equals(UserTypeEnum.CUSTOMER.name())) {
             return ResponseUtil.error(null, "02", "User Can't be deleted");
         }
 
@@ -104,7 +133,7 @@ public class UserService {
         try {
             log.info("masuk sini");
             Optional<User> existing = userRepository.findByUsernameAndIsDeleteFalse(request.getUsername());
-            if(existing.isPresent()){
+            if (existing.isPresent()) {
                 return ResponseUtil.error(null, "02", "User already exist");
             }
 

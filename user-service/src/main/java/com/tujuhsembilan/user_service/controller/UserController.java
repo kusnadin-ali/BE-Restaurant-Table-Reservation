@@ -6,6 +6,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.tujuhsembilan.user_service.dto.User.UserRestaurantCreateDto;
@@ -25,32 +26,35 @@ public class UserController {
 
     @GetMapping("/restaurant")
     @PreAuthorize("@roleEvaluator.hasAnyRole('ROLE_STAFF', 'ROLE_ADMIN')")
-    public ResponseEntity<?> getRestaurant() {
-        return userService.getListStaffUserRestaurant();
+    public ResponseEntity<?> getRestaurant(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+        return userService.getListStaffUserRestaurant(page, size);
     }
 
     @GetMapping("/customer")
     @PreAuthorize("@roleEvaluator.hasAnyRole('ROLE_STAFF', 'ROLE_ADMIN')")
-    public ResponseEntity<?> getCustomers() {
-        return userService.getListCustomer();
+    public ResponseEntity<?> getCustomers(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+        return userService.getListCustomer(page, size);
     }
 
     @PutMapping("/edit")
     public ResponseEntity<?> editUserDetail(
-            @RequestBody UserUpdateDto request
-    ) {
+            @RequestBody UserUpdateDto request) {
         return userService.updateDetailUser(request);
     }
 
     @DeleteMapping("/{username}")
     @PreAuthorize("@roleEvaluator.hasRole('ROLE_ADMIN')")
-    public ResponseEntity<?> deleteUserDetail( @PathVariable String username) {
+    public ResponseEntity<?> deleteUserDetail(@PathVariable String username) {
         return userService.deleteUser(username);
     }
 
     @PostMapping("/restaurant/add")
     @PreAuthorize("@roleEvaluator.hasRole('ROLE_ADMIN')")
-    public ResponseEntity<?> addRestaurant( @RequestBody UserRestaurantCreateDto request) {
+    public ResponseEntity<?> addRestaurant(@RequestBody UserRestaurantCreateDto request) {
         return userService.addStaffOrAdminRestaurant(request);
     }
 }
