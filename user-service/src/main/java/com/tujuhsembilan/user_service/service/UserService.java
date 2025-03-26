@@ -11,6 +11,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import com.tujuhsembilan.user_service.broker.producer.CustomerProducer;
 import com.tujuhsembilan.user_service.constant.UserTypeEnum;
 import com.tujuhsembilan.user_service.dto.User.PaginationResponseDto;
 import com.tujuhsembilan.user_service.dto.User.UserCustomerDto;
@@ -19,6 +20,8 @@ import com.tujuhsembilan.user_service.dto.User.UserRestaurantCreateDto;
 import com.tujuhsembilan.user_service.dto.User.UserUpdateDto;
 import com.tujuhsembilan.user_service.model.User;
 import com.tujuhsembilan.user_service.repository.UserRepository;
+import com.tujuhsembilan.core.constant.BrokerConstant.KeyMessage;
+import com.tujuhsembilan.core.dto.CustomerBrokerDto;
 import com.tujuhsembilan.core.utils.ResponseUtil;
 
 import lombok.AllArgsConstructor;
@@ -33,8 +36,20 @@ public class UserService {
 
     private final PasswordEncoder passwordEncoder;
 
+    private final CustomerProducer customerProducer;
+
     public boolean isUserExistByUsername(String username) {
         return userRepository.findByUsernameAndIsDeleteFalse(username).isPresent();
+    }
+
+    private CustomerBrokerDto convertUserToCustomer(User user) {
+        CustomerBrokerDto customer = new CustomerBrokerDto();
+        customer.setEmail(user.getEmail());
+        customer.setName(user.getName());
+        customer.setUsername(user.getUsername());
+        customer.setId(user.getId());
+        customer.setIsDelete(user.getIsDelete());
+        return customer;
     }
 
     public ResponseEntity<?> saveUser(UserCustomerDto userCustomerDto) {
@@ -44,7 +59,10 @@ public class UserService {
             BeanUtils.copyProperties(userCustomerDto, user);
             user.setUserType(UserTypeEnum.CUSTOMER.getName());
             System.out.println(user);
-            userRepository.save(user);
+            User savedUser = userRepository.save(user);
+
+            // Send Message to Kafka
+            customerProducer.sendMessage(convertUserToCustomer(savedUser), KeyMessage.CREATE);
             userCustomerDto.setPassword("****");
             return ResponseEntity.ok(userCustomerDto);
 
@@ -63,9 +81,7 @@ public class UserService {
             
             Pageable pageable = PageRequest.of(page, size);
             List<String> userTypes = List.of(UserTypeEnum.STAFF.name(), UserTypeEnum.ADMIN.name());
-            log.info("tets 0");
             Page<UserPojo> users = userRepository.getAllByUserTypeWithPagination(userTypes, pageable);
-            log.info("test 1");
             PaginationResponseDto response = new PaginationResponseDto();
             response.setData(users.getContent());
             response.setPage(users.getNumber());
@@ -75,8 +91,7 @@ public class UserService {
             return ResponseUtil.success(response);
         
         } catch (Exception e) {
-            // TODO: handle exception
-            log.error("error disini", e);
+            log.error("Error in getListStaffUserRestaurant", e);
             return ResponseUtil.error(null, "02", "Internal server error");
         }
     }
