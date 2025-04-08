@@ -1,28 +1,35 @@
 package com.tujuhsembilan.table_management.controller;
 
+import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
 import java.util.ArrayList;
 import java.util.List;
 
 import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
+import org.skyscreamer.jsonassert.JSONAssert;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.MvcResult;
+import org.springframework.test.web.servlet.RequestBuilder;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
-import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.tujuhsembilan.core.constant.ApiConstant.ResponseMessage;
+import com.tujuhsembilan.core.dto.ResponseDto;
 import com.tujuhsembilan.core.utils.ResponseUtil;
 import com.tujuhsembilan.table_management.dto.DinnerTablePojo;
+import com.tujuhsembilan.table_management.dto.DinnerTableRequest;
+import com.tujuhsembilan.table_management.model.DinnerTable;
 import com.tujuhsembilan.table_management.service.DinnerTableService;
 
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-@SpringBootTest
-@AutoConfigureMockMvc
+@WebMvcTest(DinnerTableController.class )
 public class DinnerTableControllerTests {
 
     @Autowired
@@ -31,31 +38,118 @@ public class DinnerTableControllerTests {
     @MockitoBean
     private DinnerTableService dinnerTableService;
 
+    @Autowired
+    private ObjectMapper objectMapper;
+
     @Test
     public void givenDinnerTable_whenGetAllDinnerTable_thenStatus200() throws Exception {
-        log.info("tests1");
         List<DinnerTablePojo> responseDinnerTable = new ArrayList<DinnerTablePojo>();
         responseDinnerTable.add(new DinnerTablePojo("A1", 4));
         responseDinnerTable.add(new DinnerTablePojo("B1", 5));
-        ResponseEntity<?> mockResponse = ResponseUtil.success(responseDinnerTable);
-        // Mocking service
-        Mockito.doReturn(mockResponse).when(dinnerTableService).getAllDinnerTable();
+        ResponseDto<Object> mockResponse = ResponseUtil.success(responseDinnerTable);
 
-        // Lakukan request ke endpoint dan verifikasi hasilnya
-        mockMvc.perform(MockMvcRequestBuilders.get("/dinner-table")
-                .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(MockMvcResultMatchers.status().isOk())
-                // Verifikasi struktur response, misal: response dikemas dalam field "result"
-                .andExpect(MockMvcResultMatchers.jsonPath("$.result").isArray())
-                .andExpect(MockMvcResultMatchers.jsonPath("$.result.length()").value(2))
-                // Verifikasi data pertama
-            .andExpect(MockMvcResultMatchers.jsonPath("$.result[0].tableId").value("A1"))
-            .andExpect(MockMvcResultMatchers.jsonPath("$.result[0].chairAmount").value(4))
-            .andExpect(MockMvcResultMatchers.jsonPath("$.result[1].tableId").value("B1"))
-            .andExpect(MockMvcResultMatchers.jsonPath("$.result[1].chairAmount").value(5))
-            .andExpect(MockMvcResultMatchers.jsonPath("$.code").value("00"));
+        when(dinnerTableService.getAllDinnerTable()).thenReturn(mockResponse);
 
-        // Verifikasi bahwa service dipanggil sekali
-        Mockito.verify(dinnerTableService, Mockito.times(1)).getAllDinnerTable();
+        RequestBuilder requestBuilder = MockMvcRequestBuilders.get("/dinner-table")
+                .accept(MediaType.APPLICATION_JSON);
+
+        MvcResult result = mockMvc.perform(requestBuilder)
+                .andExpect(status().isOk())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andReturn();
+
+        String expectedJson = objectMapper.writeValueAsString(mockResponse);
+
+        JSONAssert.assertEquals(expectedJson, result.getResponse().getContentAsString(), false);
+    }
+
+    @Test
+    public void givenDetailDinnerTableTest() throws Exception {
+        DinnerTablePojo dinnerTable = new DinnerTablePojo("A1", 4);
+
+        when(dinnerTableService.getDetailDinnerTable("A1")).thenReturn(ResponseUtil.success(dinnerTable));
+
+        RequestBuilder requestBuilder = MockMvcRequestBuilders.get("/dinner-table/A1")
+                .accept(MediaType.APPLICATION_JSON);
+
+        MvcResult result = mockMvc.perform(requestBuilder)
+                .andExpect(status().isOk())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andReturn();
+
+        String expectedJson = objectMapper.writeValueAsString(ResponseUtil.success(dinnerTable));
+
+        JSONAssert.assertEquals(expectedJson, result.getResponse().getContentAsString(), false);
+    }
+
+    @Test
+    public void createDinnerTableTest() throws Exception {
+        DinnerTableRequest request = new DinnerTableRequest("A1", 4);
+        DinnerTable newDinnerTable = new DinnerTable(null, request.getTableId().toUpperCase(), request.getChairAmount());
+
+        ResponseDto<Object> mockResponse = ResponseUtil.success(newDinnerTable,  ResponseMessage.SUCCESS_CREATE_DATA);
+        when(dinnerTableService.addNewDinnertable(request)).thenReturn(ResponseUtil.success(newDinnerTable,  ResponseMessage.SUCCESS_CREATE_DATA));
+
+        RequestBuilder requestBuilder = MockMvcRequestBuilders.post("/dinner-table")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request))
+                .header("x-role", "ROLE_ADMIN")
+                .accept(MediaType.APPLICATION_JSON);
+
+        MvcResult result = mockMvc.perform(requestBuilder)
+                .andExpect(status().isOk())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andReturn();
+
+        String expectedJson = objectMapper.writeValueAsString(mockResponse);
+
+        JSONAssert.assertEquals(expectedJson, result.getResponse().getContentAsString(), false);
+
+    }
+
+    @Test
+    public void updateDinnerTableTest() throws Exception {
+        DinnerTableRequest request = new DinnerTableRequest("A1", 4);
+        DinnerTable newDinnerTable = new DinnerTable(Long.valueOf(1), request.getTableId().toUpperCase(), request.getChairAmount());
+
+        ResponseDto<Object> mockResponse = ResponseUtil.success(newDinnerTable,  ResponseMessage.SUCCESS_UPDATE_DATA);
+
+        when(dinnerTableService.updateDetailDinnerTable(request)).thenReturn(mockResponse);
+
+        RequestBuilder requestBuilder = MockMvcRequestBuilders.put("/dinner-table")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request))
+                .header("x-role", "ROLE_ADMIN")
+                .accept(MediaType.APPLICATION_JSON);
+
+        MvcResult result = mockMvc.perform(requestBuilder)
+                .andExpect(status().isOk())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andReturn();
+
+        String expectedJson = objectMapper.writeValueAsString(mockResponse);
+
+        JSONAssert.assertEquals(expectedJson, result.getResponse().getContentAsString(), false);
+    }
+
+    @Test
+    public void deleteDinnerTableTest() throws Exception {
+
+        ResponseDto<Object> mockResponse = ResponseUtil.success(null, ResponseMessage.SUCCESS_REMOVE_DATA);
+
+        when(dinnerTableService.deleteDinnerTable("A1")).thenReturn(mockResponse);
+
+        RequestBuilder requestBuilder = MockMvcRequestBuilders.delete("/dinner-table/A1")
+                .header("x-role", "ROLE_ADMIN")
+                .accept(MediaType.APPLICATION_JSON);
+
+        MvcResult result = mockMvc.perform(requestBuilder)
+                .andExpect(status().isOk())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andReturn();
+
+        String expectedJson = objectMapper.writeValueAsString(mockResponse);
+
+        JSONAssert.assertEquals(expectedJson, result.getResponse().getContentAsString(), false);
     }
 }
