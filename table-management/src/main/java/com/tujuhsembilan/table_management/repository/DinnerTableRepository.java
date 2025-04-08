@@ -12,10 +12,10 @@ import com.tujuhsembilan.table_management.model.DinnerTable;
 
 @Repository
 public interface DinnerTableRepository extends JpaRepository<DinnerTable, Long> {
-    
+
     List<DinnerTable> findAll();
 
-    @Query(value = "SELECT dt.table_id as tableId, dt.chair_amount as chairAmount FROM public.dinner_table dt", nativeQuery = true)
+    @Query(value = "SELECT dt.table_id as tableId, CAST(dt.chair_amount AS int) as chairAmount FROM public.dinner_table dt", nativeQuery = true)
     List<DinnerTablePojo> getAll();
 
     @Query(value = "SELECT dt.table_id as tableId, dt.chair_amount as chairAmount FROM public.dinner_table dt WHERE UPPER(dt.table_id) = UPPER(:tableId)", nativeQuery = true)

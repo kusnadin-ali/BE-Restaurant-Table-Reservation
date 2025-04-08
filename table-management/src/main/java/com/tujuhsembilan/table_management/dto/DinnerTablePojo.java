@@ -1,7 +1,14 @@
 package com.tujuhsembilan.table_management.dto;
 
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
-public interface DinnerTablePojo {
-    String getTableId();
-    Integer getChairAmount();
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+public class DinnerTablePojo {
+    private String tableId;
+
+    private Integer chairAmount;
 }

@@ -1,78 +1,64 @@
 package com.tujuhsembilan.core.utils;
 
-import java.util.HashMap;
-import java.util.Map;
-
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 
-import com.tujuhsembilan.core.constant.ApiConstant;
+import com.tujuhsembilan.core.constant.ApiConstant.ResponseCode;
+import com.tujuhsembilan.core.constant.ApiConstant.ResponseMessage;
+import com.tujuhsembilan.core.dto.ResponseDto;
 
 @Component
 public class ResponseUtil {
 
-    public static <T> ResponseEntity<Map<String, Object>> success() {
+    public static <T> ResponseDto<T> success() {
         return success(null);
     }
 
-    public static <T> ResponseEntity<Map<String, Object>> success(T result) {
-        Map<String, Object> response = new HashMap<>();
-        response.put("code", ApiConstant.SUCCESS_CODE);
-        response.put("message", "Success");
-        if (result != null)
-            response.put("result", result);
+    public static <T> ResponseDto<T> success(T result) {
+        ResponseDto<T> response = new ResponseDto<>();
+        response.setCode(ResponseCode.SUCCESS_CODE);
+        response.setMessage(ResponseMessage.SUCCESS_MESSAGE);
+        response.setResult(result);
 
-        return ResponseEntity.ok(response);
+        return response;
     }
 
-    public static <T> ResponseEntity<Map<String, Object>> success(T result, String message) {
-        Map<String, Object> response = new HashMap<>();
-        response.put("code", ApiConstant.SUCCESS_CODE);
-        response.put("message", message);
-        if (result != null)
-            response.put("result", result);
+    public static <T> ResponseDto<T> success(T result, String message) {
 
-        return ResponseEntity.ok(response);
+        ResponseDto<T> response = new ResponseDto<>();
+        response.setCode(ResponseCode.SUCCESS_CODE);
+        response.setMessage(message);
+        response.setResult(result);
+
+        return response;
     }
 
-    public static <T> ResponseEntity<Map<String, Object>> error(T result, String customCode) {
-        Map<String, Object> response = new HashMap<>();
-        response.put("code", customCode);
-        response.put("message", "Error");
-        if (result != null)
-            response.put("result", result);
+    public static <T> ResponseDto<T> error(T result) {
 
-        return ResponseEntity.status(400).body(response);
+        ResponseDto<T> response = new ResponseDto<>();
+        response.setCode(ResponseCode.ERROR_CODE);
+        response.setMessage(ResponseMessage.ERROR_MESSAGE);
+        response.setResult(result);
+
+        return response;
     }
 
-    public static <T> ResponseEntity<Map<String, Object>> error(T result, String customCode, Integer statusCode) {
-        Map<String, Object> response = new HashMap<>();
-        response.put("code", customCode);
-        response.put("message", "Error");
-        if (result != null)
-            response.put("result", result);
+    public static <T> ResponseDto<T> error(T result, String message) {
 
-        return ResponseEntity.status(statusCode).body(response);
+        ResponseDto<T> response = new ResponseDto<>();
+        response.setCode(ResponseCode.ERROR_CODE);
+        response.setMessage(message);
+        response.setResult(result);
+
+        return response;
     }
 
-    public static <T> ResponseEntity<Map<String, Object>> error(T result, String customCode, String message) {
-        Map<String, Object> response = new HashMap<>();
-        response.put("code", customCode);
-        response.put("message", message);
-        if (result != null)
-            response.put("result", result);
+    public static <T> ResponseDto<T> error(T result, String code, String message) {
 
-        return ResponseEntity.status(500).body(response);
-    }
+        ResponseDto<T> response = new ResponseDto<>();
+        response.setCode(ResponseCode.ERROR_CODE);
+        response.setMessage(message);
+        response.setResult(result);
 
-    public static <T> ResponseEntity<Map<String, Object>> error(T result, String customCode, String message,
-            Integer statusCode) {
-        Map<String, Object> response = new HashMap<>();
-        response.put("code", customCode);
-        response.put("message", message);
-        if (result != null)
-            response.put("result", result);
-
-        return ResponseEntity.status(statusCode).body(response);
+        return response;
     }
 }
